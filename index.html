@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FX Splitter - Currency Exchange Calculator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --red: #E63946;
+            --black: #000000;
+            --white: #FFFFFF;
+            --light-gray: #F5F5F5;
+            --dark-gray: #333333;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: var(--white);
+            color: var(--black);
+            line-height: 1.6;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+
+        .sidebar {
+            width: 350px;
+            background-color: var(--black);
+            color: var(--white);
+            padding: 30px 20px;
+            overflow-y: auto;
+            border-right: 2px solid var(--red);
+        }
+
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 30px;
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--red);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--white);
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid var(--red);
+            border-radius: 4px;
+            font-size: 14px;
+            background-color: var(--white);
+            color: var(--black);
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--red);
+            box-shadow: 0 0 0 3px rgba(230, 57, 70, 0.1);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px 16px;
+            border: none;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background-color: var(--red);
+            color: var(--white);
+        }
+
+        .btn-primary:hover {
+            background-color: #d62828;
+            transform: translateY(-2px);
+        }
+
+        .btn-primary:active {
+            transform: scale(0.98);
+        }
+
+        .btn-secondary {
+            background-color: var(--white);
+            color: var(--black);
+            border: 2px solid var(--red);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--light-gray);
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+            background-color: var(--white);
+        }
+
+        .results-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--black);
+            margin-bottom: 16px;
+        }
+
+        .results-actions {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .results-actions .btn {
+            flex: 1;
+            min-width: 140px;
+        }
+
+        .transactions-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .transaction-card {
+            background-color: var(--light-gray);
+            border-left: 4px solid var(--red);
+            padding: 12px;
+            border-radius: 4px;
+        }
+
+        .transaction-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .transaction-number {
+            color: var(--black);
+        }
+
+        .transaction-rate {
+            color: var(--red);
+        }
+
+        .transaction-amounts {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .amount-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+        }
+
+        .amount-label {
+            font-weight: 600;
+            color: var(--dark-gray);
+        }
+
+        .amount-value {
+            color: var(--black);
+            font-weight: 700;
+        }
+
+        .total-aud-footer {
+            border-top: 2px solid var(--red);
+            padding-top: 15px;
+            margin-top: 20px;
+        }
+
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .total-label {
+            font-weight: 600;
+            color: var(--black);
+        }
+
+        .total-amount {
+            font-weight: 700;
+            color: var(--red);
+            font-size: 16px;
+        }
+
+        .settings-panel {
+            position: fixed;
+            top: 0;
+            right: -300px;
+            width: 300px;
+            height: 100vh;
+            background-color: var(--black);
+            color: var(--white);
+            padding: 20px;
+            transition: right 0.3s ease;
+            z-index: 1000;
+            overflow-y: auto;
+            border-left: 2px solid var(--red);
+        }
+
+        .settings-panel.open {
+            right: 0;
+        }
+
+        .settings-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: var(--red);
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .settings-group {
+            margin-bottom: 20px;
+        }
+
+        .settings-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .settings-group input {
+            width: 100%;
+            padding: 8px;
+            border: 2px solid var(--red);
+            border-radius: 4px;
+            background-color: var(--white);
+            color: var(--black);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--light-gray);
+        }
+
+        .header-title {
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .settings-icon {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: var(--black);
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none;
+            z-index: 999;
+        }
+
+        .overlay.open {
+            display: block;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--dark-gray);
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                padding: 20px;
+            }
+
+            .main-content {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <span>💱</span>
+                <span>FX Splitter</span>
+            </div>
+
+            <div class="form-group">
+                <label>Exchange Rate Range</label>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Min Rate</label>
+                    <input type="number" id="minRate" placeholder="1.4500" step="0.0001">
+                </div>
+                <div class="form-group">
+                    <label>Max Rate</label>
+                    <input type="number" id="maxRate" placeholder="1.5500" step="0.0001">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Total Amounts</label>
+            </div>
+
+            <div class="form-group">
+                <label>USD Amount</label>
+                <input type="number" id="usdAmount" placeholder="100000.00" step="0.01">
+            </div>
+
+            <div class="form-group">
+                <label>AUD Amount</label>
+                <input type="number" id="audAmount" placeholder="8438.00" step="0.01">
+            </div>
+
+            <div class="form-group">
+                <button class="btn btn-primary" onclick="calculateTransactions()">Calculate Split</button>
+            </div>
+
+            <div class="form-group">
+                <button class="btn btn-secondary" onclick="resetForm()">Reset Form</button>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="header">
+                <div class="header-title">Transaction Results</div>
+                <button class="settings-icon" onclick="toggleSettings()">⚙️</button>
+            </div>
+
+            <div id="resultsContainer" class="empty-state">
+                <div class="empty-state-icon">📊</div>
+                <p>Enter values and click "Calculate Split" to see results</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="overlay" id="overlay" onclick="toggleSettings()"></div>
+
+    <div class="settings-panel" id="settingsPanel">
+        <div class="settings-header">
+            <span>Settings</span>
+            <button class="close-btn" onclick="toggleSettings()">✕</button>
+        </div>
+        <div class="settings-group">
+            <label>AUD Limit per Transaction</label>
+            <input type="number" id="audLimit" placeholder="999.99" step="0.01" value="999.99" min="100" max="10000">
+            <small style="display: block; margin-top: 8px; color: #999;">Range: $100 - $10,000</small>
+        </div>
+    </div>
+
+    <script>
+        // Initialize
+        let transactions = [];
+        let audLimit = parseFloat(localStorage.getItem('audLimit')) || 999.99;
+        document.getElementById('audLimit').value = audLimit;
+
+        function toggleSettings() {
+            document.getElementById('settingsPanel').classList.toggle('open');
+            document.getElementById('overlay').classList.toggle('open');
+            if (document.getElementById('settingsPanel').classList.contains('open')) {
+                audLimit = parseFloat(document.getElementById('audLimit').value) || 999.99;
+                localStorage.setItem('audLimit', audLimit);
+            }
+        }
+
+        function calculateTransactions() {
+            const minRate = parseFloat(document.getElementById('minRate').value);
+            const maxRate = parseFloat(document.getElementById('maxRate').value);
+            const totalUSD = parseFloat(document.getElementById('usdAmount').value);
+            const totalAUD = parseFloat(document.getElementById('audAmount').value);
+
+            if (!minRate || !maxRate || !totalUSD || !totalAUD) {
+                alert('Please fill in all fields');
+                return;
+            }
+
+            audLimit = parseFloat(document.getElementById('audLimit').value) || 999.99;
+            localStorage.setItem('audLimit', audLimit);
+
+            // Calculate number of transactions based on AUD limit
+            const numTransactions = Math.ceil(totalAUD / audLimit);
+
+            // Generate random AUD amounts
+            transactions = [];
+            let remainingAUD = totalAUD;
+            let remainingUSD = totalUSD;
+
+            for (let i = 0; i < numTransactions; i++) {
+                let audAmount;
+                if (i === numTransactions - 1) {
+                    audAmount = remainingAUD;
+                } else {
+                    audAmount = Math.random() * (audLimit - 10) + 10;
+                    audAmount = Math.min(audAmount, remainingAUD - 10);
+                }
+
+                const rate = totalAUD / totalUSD;
+                const usdAmount = audAmount / rate;
+
+                transactions.push({
+                    index: i + 1,
+                    usdAmount: usdAmount,
+                    audAmount: audAmount,
+                    rate: rate
+                });
+
+                remainingAUD -= audAmount;
+                remainingUSD -= usdAmount;
+            }
+
+            displayResults();
+        }
+
+        function displayResults() {
+            if (transactions.length === 0) return;
+
+            const totalUSD = transactions.reduce((sum, t) => sum + t.usdAmount, 0);
+            const totalAUD = transactions.reduce((sum, t) => sum + t.audAmount, 0);
+
+            let html = `
+                <div class="results-actions">
+                    <button class="btn btn-primary" onclick="regenerateRates()">Regenerate Rates</button>
+                    <button class="btn btn-primary" onclick="exportCSV()">Export CSV</button>
+                </div>
+
+                <div class="transactions-list">
+            `;
+
+            transactions.forEach(txn => {
+                html += `
+                    <div class="transaction-card">
+                        <div class="transaction-header">
+                            <span class="transaction-number">Transaction ${txn.index}</span>
+                            <span class="transaction-rate">(Rate: ${txn.rate.toFixed(4)})</span>
+                        </div>
+                        <div class="transaction-amounts">
+                            <div class="amount-row">
+                                <span class="amount-label">USD:</span>
+                                <span class="amount-value">$${txn.usdAmount.toFixed(2)}</span>
+                            </div>
+                            <div class="amount-row">
+                                <span class="amount-label">AUD:</span>
+                                <span class="amount-value">A$${txn.audAmount.toFixed(2)}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += `
+                </div>
+
+                <div class="total-aud-footer">
+                    <div class="total-row">
+                        <span class="total-label">TOTAL USD AMOUNT:</span>
+                        <span class="total-amount">$${totalUSD.toFixed(2)}</span>
+                    </div>
+                    <div class="total-row">
+                        <span class="total-label">TOTAL AUD AMOUNT:</span>
+                        <span class="total-amount">A$${totalAUD.toFixed(2)}</span>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('resultsContainer').innerHTML = html;
+        }
+
+        function regenerateRates() {
+            const minRate = parseFloat(document.getElementById('minRate').value);
+            const maxRate = parseFloat(document.getElementById('maxRate').value);
+
+            transactions.forEach(txn => {
+                txn.rate = Math.random() * (maxRate - minRate) + minRate;
+            });
+
+            displayResults();
+        }
+
+        function exportCSV() {
+            const minRate = parseFloat(document.getElementById('minRate').value);
+            const maxRate = parseFloat(document.getElementById('maxRate').value);
+            const totalUSD = parseFloat(document.getElementById('usdAmount').value);
+            const totalAUD = parseFloat(document.getElementById('audAmount').value);
+
+            let csv = 'FX Splitter Export\n';
+            csv += `Generated: ${new Date().toLocaleString()}\n\n`;
+            csv += `Exchange Rate Range,${minRate.toFixed(4)},${maxRate.toFixed(4)}\n`;
+            csv += `Total USD Amount,${totalUSD.toFixed(2)}\n`;
+            csv += `Total AUD Amount,${totalAUD.toFixed(2)}\n`;
+            csv += `Number of Transactions,${transactions.length}\n\n`;
+
+            csv += 'Transaction #,USD Amount,Exchange Rate,AUD Amount\n';
+            transactions.forEach(txn => {
+                csv += `${txn.index},${txn.usdAmount.toFixed(2)},${txn.rate.toFixed(4)},${txn.audAmount.toFixed(2)}\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `fx-splitter-${new Date().getTime()}.csv`;
+            a.click();
+        }
+
+        function resetForm() {
+            document.getElementById('minRate').value = '1.4500';
+            document.getElementById('maxRate').value = '1.5500';
+            document.getElementById('usdAmount').value = '5900';
+            document.getElementById('audAmount').value = '8438';
+            transactions = [];
+            document.getElementById('resultsContainer').innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">📊</div>
+                    <p>Enter values and click "Calculate Split" to see results</p>
+                </div>
+            `;
+        }
+
+        // Load saved AUD limit
+        window.addEventListener('load', () => {
+            const saved = localStorage.getItem('audLimit');
+            if (saved) {
+                document.getElementById('audLimit').value = saved;
+                audLimit = parseFloat(saved);
+            }
+        });
+    </script>
+</body>
+</html>
